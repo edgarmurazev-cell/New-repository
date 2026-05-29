@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mini MMO Arena</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1b2735 0, #090a0f 55%, #000 100%);
+      color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 16px 24px;
+      background: rgba(0, 0, 0, 0.7);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    header span {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-wrap: wrap;
+      padding: 16px;
+      gap: 16px;
+      box-sizing: border-box;
+    }
+
+    .panel {
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 16px;
+      box-sizing: border-box;
+      backdrop-filter: blur(10px);
+    }
+
+    .left {
+      flex: 1 1 260px;
+      max-width: 360px;
+    }
+
+    .center {
+      flex: 2 1 320px;
+      min-width: 280px;
+    }
+
+    .right {
+      flex: 1 1 260px;
+      max-width: 360px;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      opacity: 0.9;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .bar {
+      position: relative;
+      height: 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .bar-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 50%;
+      border-radius: inherit;
+      transition: width 0.2s ease-out;
+    }
+
+    .bar-label {
+      font-size: 11px;
+      opacity: 0.8;
+      margin-bottom: 4px;
+    }
+
+    .hp { background: linear-gradient(90deg, #ff4b5c, #ff9a9e); }
+    .mp { background: linear-gradient(90deg, #4b7bff, #9fa8ff); }
+    .xp { background: linear-gradient(90deg, #ffc857, #ffeb99); }
+
+    .avatar {
+      width: 100%;
+      height: 160px;
+      border-radius: 12px;
+      background: radial-gradient(circle at 20% 0, #4b7bff 0, transparent 55%),
+                  radial-gradient(circle at 80% 100%, #ff4b5c 0, transparent 55%),
+                  #05060a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .avatar::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle at 50% 0, rgba(255,255,255,0.15), transparent 60%);
+      mix-blend-mode: screen;
+      opacity: 0.7;
+    }
+
+    .avatar-inner {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.6);
+      box-shadow: 0 0 24px rgba(0, 0, 0, 0.7);
+      z-index: 1;
+    }
+
+    .avatar-inner span {
+      font-size: 32px;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    button {
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.04);
+      color: #f5f5f5;
+      padding: 8px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s ease, transform 0.05s ease;
+    }
+
+    button:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .btn-main {
+      background: linear-gradient(135deg, #ff4b5c, #ff9a9e);
+      border-color: rgba(0, 0, 0, 0.4);
+      color: #111;
+      font-weight: 600;
+    }
+
+    .btn-main:hover {
+      background: linear-gradient(135deg, #ff5f6d, #ffc371);
+    }
+
+    .enemy-card {
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 12px;
+      margin-bottom: 12px;
+      background: radial-gradient(circle at 0 0, rgba(255,255,255,0.08), transparent 55%);
+    }
+
+    .enemy-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .log {
+      font-size: 12px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .log-line {
+      margin-bottom: 4px;
+      opacity: 0.9;
+    }
+
+    .log-line span {
+      opacity: 0.7;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      margin-right: 4px;
+      margin-bottom: 4px;
+    }
+
+    footer {
+      padding: 10px 16px;
+      font-size: 11px;
+      text-align: center;
+      opacity: 0.7;
+      background: rgba(0, 0, 0, 0.7);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Mini MMO Arena</h1>
+    <span>Браузерная мини‑игра: сражайся, качайся, собирай лут</span>
+  </div>
+  <span>v0.1 prototype</span>
+</header>
+
+<main>
+  <!-- ЛЕВАЯ ПАНЕЛЬ: Игрок -->
+  <section class="panel left">
+    <h2>Герой</h2>
+    <div class="avatar">
+      <div class="avatar-inner">
+        <span>⚔️</span>
+      </div>
+    </div>
+
+    <div class="stat-row">
+      <span>Имя:</span>
+      <strong id="playerName">Герой</strong>
+    </div>
+    <div class="stat-row">
+      <span>Уровень:</span>
+      <strong id="playerLevel">1</strong>
+    </div>
+    <div class="stat-row">
+      <span>Золото:</span>
+      <strong id="playerGold">0</strong>
+    </div>
+
+    <div class="bar-label">Здоровье</div>
+    <div class="bar">
+      <div class="bar-fill hp" id="hpBar"></div>
+    </div>
+    <div class="stat-row">
+      <span id="hpText">HP 30 / 30</span>
+      <span id="defText">Броня 0</span>
+    </div>
+
+    <div class="bar-label">Мана</div>
+    <div class="bar">
+      <div class="bar-fill mp" id="mpBar"></div>
+    </div>
+    <div class="stat-row">
+      <span id="mpText">MP 10 / 10</span>
+      <span id="atkText">Атака 4</span>
+    </div>
+
+    <div class="bar-label">Опыт</div>
+    <div class="bar">
+      <div class="bar-fill xp" id="xpBar"></div>
+    </div>
+    <div class="stat-row">
+      <span id="xpText">XP 0 / 20</span>
+      <span id="zoneText">Локация: Лес новичков</span>
+    </div>
+
+    <div style="margin-top: 10px; font-size: 12px; opacity: 0.8;">
+      <div class="tag">🧠 PvE‑прототип</div>
+      <div class="tag">🌐 MMO‑стиль (одиночный клиент)</div>
+      <div class="tag">⚙️ JS‑игровая логика</div>
+    </div>
+  </section>
+
+  <!-- ЦЕНТР: Бой -->
+  <section class="panel center">
+    <h2>Бой</h2>
+
+    <div class="enemy-card">
+      <div class="enemy-name" id="enemyName">Лесной слизень</div>
+      <div class="stat-row">
+        <span id="enemyHpText">HP 15 / 15</span>
+        <span id="enemyInfoText">Атака 3 • Локация: Лес</span>
+      </div>
+      <div class="bar">
+        <div class="bar-fill hp" id="enemyHpBar" style="width: 100%;"></div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-main" id="btnAttack">Атаковать</button>
+      <button id="btnSkill">Навык: Мощный удар (3 MP)</button>
+      <button id="btnHeal">Зелье лечения</button>
+      <button id="btnNextEnemy">Следующий враг</button>
+    </div>
+
+    <div style="margin-top: 12px; font-size: 13px; opacity: 0.85;">
+      Побеждай врагов, получай опыт и золото. При повышении уровня растут характеристики.
+      Это прототип мини‑MMO‑арены без реального сервера, но логику можно расширить.
+    </div>
+
+    <h2 style="margin-top: 18px;">Журнал событий</h2>
+    <div class="log" id="log"></div>
+  </section>
+
+  <!-- ПРАВАЯ ПАНЕЛЬ: Лут и улучшения -->
+  <section class="panel right">
+    <h2>Инвентарь и улучшения</h2>
+
+    <div class="stat-row">
+      <span>Оружие:</span>
+      <strong id="weaponText">Ржавый меч (+0)</strong>
+    </div>
+    <div class="stat-row">
+      <span>Броня:</span>
+      <strong id="armorText">Тряпичная броня (+0)</strong>
+    </div>
+
+    <div class="btn-row" style="margin-top: 10px;">
+      <button id="btnUpgradeWeapon">Улучшить оружие (10 золота)</button>
+      <button id="btnUpgradeArmor">Улучшить броню (10 золота)</button>
+    </div>
+
+    <h2 style="margin-top: 18px;">Справка</h2>
+    <ul style="font-size: 12px; padding-left: 18px; opacity: 0.9;">
+      <li>Атака — базовый удар по врагу.</li>
+      <li>Навык тратит ману, но наносит усиленный урон.</li>
+      <li>За победу даётся опыт и золото.</li>
+      <li>При заполнении опыта — повышение уровня.</li>
+      <li>Улучшай оружие и броню за золото.</li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  Прототип мини‑MMO‑арены на чистом HTML/CSS/JS. Можно бесплатно разместить на GitHub Pages, Netlify и др.
+</footer>
+
+<script>
+  // --- ДАННЫЕ ИГРОКА ---
+  const player = {
+    name: "Герой",
+    level: 1,
+    hp: 30,
+    maxHp: 30,
+    mp: 10,
+    maxMp: 10,
+    atk: 4,
+    def: 0,
+    xp: 0,
+    xpToNext: 20,
+    gold: 0,
+    weaponLevel: 0,
+    armorLevel: 0,
+  };
+
+  // --- СПИСОК ВРАГОВ ---
+  const enemies = [
+    { name: "Лесной слизень", maxHp: 15, atk: 3, zone: "Лес новичков", rewardXp: 8, rewardGold: 5 },
+    { name: "Дикий волк", maxHp: 24, atk: 5, zone: "Лес новичков", rewardXp: 12, rewardGold: 8 },
+    { name: "Разбойник", maxHp: 32, atk: 7, zone: "Окраина деревни", rewardXp: 18, rewardGold: 12 },
+    { name: "Теневой маг", maxHp: 40, atk: 9, zone: "Старая башня", rewardXp: 25, rewardGold: 18 },
+  ];
+
+  let currentEnemyIndex = 0;
+  let enemy = createEnemy(enemies[currentEnemyIndex]);
+
+  // --- ЭЛЕМЕНТЫ DOM ---
+  const elPlayerName = document.getElementById("playerName");
+  const elPlayerLevel = document.getElementById("playerLevel");
+  const elPlayerGold = document.getElementById("playerGold");
+  const elHpBar = document.getElementById("hpBar");
+  const elMpBar = document.getElementById("mpBar");
+  const elXpBar = document.getElementById("xpBar");
+  const elHpText = document.getElementById("hpText");
+  const elMpText = document.getElementById("mpText");
+  const elXpText = document.getElementById("xpText");
+  const elDefText = document.getElementById("defText");
+  const elAtkText = document.getElementById("atkText");
+  const elZoneText = document.getElementById("zoneText");
+
+  const elEnemyName = document.getElementById("enemyName");
+  const elEnemyHpText = document.getElementById("enemyHpText");
+  const elEnemyInfoText = document.getElementById("enemyInfoText");
+  const elEnemyHpBar = document.getElementById("enemyHpBar");
+
+  const elWeaponText = document.getElementById("weaponText");
+  const elArmorText = document.getElementById("armorText");
+
+  const elLog = document.getElementById("log");
+
+  const btnAttack = document.getElementById("btnAttack");
+  const btnSkill = document.getElementById("btnSkill");
+  const btnHeal = document.getElementById("btnHeal");
+  const btnNextEnemy = document.getElementById("btnNextEnemy");
+  const btnUpgradeWeapon = document.getElementById("btnUpgradeWeapon");
+  const btnUpgradeArmor = document.getElementById("btnUpgradeArmor");
+
+  // --- ИНИЦИАЛИЗАЦИЯ ---
+  function createEnemy(template) {
+    return {
+      name: template.name,
+      hp: template.maxHp,
+      maxHp: template.maxHp,
+      atk: template.atk,
+      zone: template.zone,
+      rewardXp: template.rewardXp,
+      rewardGold: template.rewardGold,
+    };
+  }
+
+  function updateUI() {
+    elPlayerName.textContent = player.name;
+    elPlayerLevel.textContent = player.level;
+    elPlayerGold.textContent = player.gold;
+
+    elHpText.textContent = `HP ${player.hp} / ${player.maxHp}`;
+    elMpText.textContent = `MP ${player.mp} / ${player.maxMp}`;
+    elXpText.textContent = `XP ${player.xp} / ${player.xpToNext}`;
+    elDefText.textContent = `Броня ${player.def}`;
+    elAtkText.textContent = `Атака ${player.atk}`;
+    elZoneText.textContent = `Локация: ${enemy.zone}`;
+
+    const hpPercent = Math.max(0, (player.hp / player.maxHp) * 100);
+    const mpPercent = Math.max(0, (player.mp / player.maxMp) * 100);
+    const xpPercent = Math.max(0, (player.xp / player.xpToNext) * 100);
+
+    elHpBar.style.width = hpPercent + "%";
+    elMpBar.style.width = mpPercent + "%";
+    elXpBar.style.width = xpPercent + "%";
+
+    elEnemyName.textContent = enemy.name;
+    elEnemyHpText.textContent = `HP ${enemy.hp} / ${enemy.maxHp}`;
+    elEnemyInfoText.textContent = `Атака ${enemy.atk} • Локация: ${enemy.zone}`;
+    const enemyHpPercent = Math.max(0, (enemy.hp / enemy.maxHp) * 100);
+    elEnemyHpBar.style.width = enemyHpPercent + "%";
+
+    elWeaponText.textContent = `Ржавый меч (+${player.weaponLevel * 2})`;
+    elArmorText.textContent = `Тряпичная броня (+${player.armorLevel * 2})`;
+  }
+
+  function log(message) {
+    const time = new Date().toLocaleTimeString("ru-RU", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    const div = document.createElement("div");
+    div.className = "log-line";
+    div.innerHTML = `<span>[${time}]</span> ${message}`;
+    elLog.prepend(div);
+  }
+
+  function clampPlayer() {
+    if (player.hp > player.maxHp) player.hp = player.maxHp;
+    if (player.hp < 0) player.hp = 0;
+    if (player.mp > player.maxMp) player.mp = player.maxMp;
+    if (player.mp < 0) player.mp = 0;
+  }
+
+  function playerAttack(isSkill = false) {
+    if (enemy.hp <= 0) {
+      log("❗ Враг уже повержен. Нажми «Следующий враг».");
+      return;
+    }
+
+    let damage = player.atk + player.weaponLevel * 2;
+    let mpCost = 0;
+
+    if (isSkill) {
+      mpCost = 3;
+      if (player.mp < mpCost) {
+        log("⚠️ Недостаточно маны для навыка.");
+        return;
+      }
+      damage = Math.round(damage * 1.8);
+      player.mp -= mpCost;
+      log(`✨ Ты используешь навык и наносишь ${damage} урона!`);
+    } else {
+      log(`⚔️ Ты атакуешь и наносишь ${damage} урона.`);
+    }
+
+    enemy.hp -= damage;
+    if (enemy.hp <= 0) {
+      enemy.hp = 0;
+      log(`🏆 Враг «${enemy.name}» повержен! +${enemy.rewardXp} XP, +${enemy.rewardGold} золота.`);
+      player.xp += enemy.rewardXp;
+      player.gold += enemy.rewardGold;
+      checkLevelUp();
+    } else {
+      enemyTurn();
+    }
+
+    clampPlayer();
+    updateUI();
+  }
+
+  function enemyTurn() {
+    if (enemy.hp <= 0) return;
+    let damage = enemy.atk - player.def;
+    if (damage < 1) damage = 1;
+    player.hp -= damage;
+    log(`💥 ${enemy.name} наносит тебе ${damage} урона.`);
+    if (player.hp <= 0) {
+      player.hp = 0;
+      log("☠️ Ты пал в бою! Здоровье восстановлено, но часть маны потеряна.");
+      player.hp = Math.round(player.maxHp * 0.7);
+      player.mp = Math.max(0, player.mp - 2);
+    }
+  }
+
+  function checkLevelUp() {
+    while (player.xp >= player.xpToNext) {
+      player.xp -= player.xpToNext;
+      player.level++;
+      player.maxHp += 6;
+      player.maxMp += 2;
+      player.atk += 1;
+      player.def += 1;
+      player.xpToNext = Math.round(player.xpToNext * 1.4);
+      player.hp = player.maxHp;
+      player.mp = player.maxMp;
+      log(`⬆️ Уровень повышен! Теперь ты ${player.level} уровня.`);
+    }
+  }
+
+  function heal() {
+    if (player.hp <= 0) {
+      log("⚠️ Ты без сознания. Сначала восстановись после смерти (это происходит автоматически после удара врага).");
+      return;
+    }
+    const healAmount = 12;
+    const before = player.hp;
+    player.hp += healAmount;
+    if (player.hp > player.maxHp) player.hp = player.maxHp;
+    const actual = player.hp - before;
+    if (actual <= 0) {
+      log("🧪 Зелье не подействовало — здоровье и так на максимуме.");
+    } else {
+      log(`🧪 Ты выпиваешь зелье и восстанавливаешь ${actual} HP.`);
+      enemyTurn();
+    }
+    clampPlayer();
+    updateUI();
+  }
+
+  function nextEnemy() {
+    currentEnemyIndex++;
+    if (currentEnemyIndex >= enemies.length) {
+      currentEnemyIndex = 0;
+      log("🌍 Круг врагов завершён. Начинается новый цикл с усиленными противниками.");
+    }
+    const template = enemies[currentEnemyIndex];
+    const scaled = {
+      ...template,
+      maxHp: template.maxHp + player.level * 4,
+      atk: template.atk + Math.floor(player.level / 2),
+    };
+    enemy = createEnemy(scaled);
+    log(`🎯 Новый враг: ${enemy.name} (локация: ${enemy.zone}).`);
+    updateUI();
+  }
+
+  function upgradeWeapon() {
+    const cost = 10;
+    if (player.gold < cost) {
+      log("💰 Недостаточно золота для улучшения оружия.");
+      return;
+    }
+    player.gold -= cost;
+    player.weaponLevel++;
+    log(`🗡️ Оружие улучшено до уровня ${player.weaponLevel}. Атака увеличена.`);
+    updateUI();
+  }
+
+  function upgradeArmor() {
+    const cost = 10;
+    if (player.gold < cost) {
+      log("💰 Недостаточно золота для улучшения брони.");
+      return;
+    }
+    player.gold -= cost;
+    player.armorLevel++;
+    player.def += 1;
+    log(`🛡️ Броня улучшена до уровня ${player.armorLevel}. Защита увеличена.`);
+    updateUI();
+  }
+
+  // --- ОБРАБОТЧИКИ КНОПОК ---
+  btnAttack.addEventListener("click", () => playerAttack(false));
+  btnSkill.addEventListener("click", () => playerAttack(true));
+  btnHeal.addEventListener("click", heal);
+  btnNextEnemy.addEventListener("click", nextEnemy);
+  btnUpgradeWeapon.addEventListener("click", upgradeWeapon);
+  btnUpgradeArmor.addEventListener("click", upgradeArmor);
+
+  // Старт
+  updateUI();
+  log("👋 Добро пожаловать в Mini MMO Arena. Начни с атаки по врагу!");
+</script>
+</body>
+</html>
